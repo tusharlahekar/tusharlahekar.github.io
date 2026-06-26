@@ -1,219 +1,217 @@
-// ===== PARTICLES =====
-const canvas = document.getElementById('particles-canvas');
-const ctx = canvas.getContext('2d');
-let particles = [];
-let animationId;
+// ==========================================
+// INTERACTIVE BACKGROUND & CURSOR GLOW
+// ==========================================
+const cursorGlow = document.getElementById('cursor-glow');
 
-function resizeCanvas() {
-  canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight;
-}
-resizeCanvas();
-window.addEventListener('resize', resizeCanvas);
-
-class Particle {
-  constructor() { this.reset(); }
-  reset() {
-    this.x = Math.random() * canvas.width;
-    this.y = Math.random() * canvas.height;
-    this.size = Math.random() * 1.5 + 0.5;
-    this.speedX = (Math.random() - 0.5) * 0.4;
-    this.speedY = (Math.random() - 0.5) * 0.4;
-    this.opacity = Math.random() * 0.5 + 0.1;
-    this.color = Math.random() > 0.6 ? '139,92,246' : Math.random() > 0.5 ? '34,211,238' : '255,255,255';
+document.addEventListener('mousemove', (e) => {
+  if (cursorGlow) {
+    cursorGlow.style.left = e.clientX + 'px';
+    cursorGlow.style.top = e.clientY + 'px';
   }
-  update() {
-    this.x += this.speedX; this.y += this.speedY;
-    if (this.x < 0 || this.x > canvas.width || this.y < 0 || this.y > canvas.height) this.reset();
-  }
-  draw() {
-    ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-    ctx.fillStyle = `rgba(${this.color},${this.opacity})`; ctx.fill();
-  }
-}
-
-function initParticles() {
-  particles = [];
-  const count = Math.min(80, Math.floor((canvas.width * canvas.height) / 12000));
-  for (let i = 0; i < count; i++) particles.push(new Particle());
-}
-
-function drawConnections() {
-  for (let i = 0; i < particles.length; i++) {
-    for (let j = i + 1; j < particles.length; j++) {
-      const dx = particles[i].x - particles[j].x, dy = particles[i].y - particles[j].y;
-      const dist = Math.sqrt(dx * dx + dy * dy);
-      if (dist < 140) {
-        ctx.beginPath();
-        ctx.moveTo(particles[i].x, particles[i].y);
-        ctx.lineTo(particles[j].x, particles[j].y);
-        ctx.strokeStyle = `rgba(139,92,246,${0.06 * (1 - dist / 140)})`;
-        ctx.lineWidth = 0.5; ctx.stroke();
-      }
-    }
-  }
-}
-
-function animateParticles() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  particles.forEach(p => { p.update(); p.draw(); });
-  drawConnections();
-  animationId = requestAnimationFrame(animateParticles);
-}
-initParticles();
-animateParticles();
-
-// ===== NAVBAR =====
-const navbar = document.getElementById('navbar');
-const hamburger = document.getElementById('hamburger');
-const navLinks = document.getElementById('nav-links');
-
-window.addEventListener('scroll', () => {
-  if (window.scrollY > 50) navbar.classList.add('scrolled');
-  else navbar.classList.remove('scrolled');
-  updateActiveNav();
 });
 
-hamburger.addEventListener('click', () => {
-  hamburger.classList.toggle('open');
-  navLinks.classList.toggle('open');
-});
+// ==========================================
+// MOBILE MENU TOGGLE
+// ==========================================
+const menuToggle = document.getElementById('menu-toggle');
+const navMenu = document.getElementById('nav-menu');
 
-document.querySelectorAll('.nav-link').forEach(link => {
-  link.addEventListener('click', () => {
-    hamburger.classList.remove('open');
-    navLinks.classList.remove('open');
+if (menuToggle && navMenu) {
+  menuToggle.addEventListener('click', () => {
+    menuToggle.classList.toggle('open');
+    navMenu.classList.toggle('open');
   });
-});
 
-function updateActiveNav() {
-  const sections = ['home', 'about', 'experience', 'projects', 'skills', 'contact'];
-  const scrollY = window.scrollY + 100;
-  sections.forEach(id => {
-    const el = document.getElementById(id);
-    const navEl = document.getElementById('nav-' + id);
-    if (!el || !navEl) return;
-    const top = el.offsetTop, bottom = top + el.offsetHeight;
-    if (scrollY >= top && scrollY < bottom) {
-      document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
-      navEl.classList.add('active');
-    }
-  });
-}
-
-// ===== TYPED TEXT =====
-const phrases = [
-  'AI Engineer',
-  'ML Specialist',
-  'Speech AI Developer',
-  'LLM & RAG Builder',
-  'Backend Developer',
-  'NLP Engineer'
-];
-let phraseIndex = 0, charIndex = 0, isDeleting = false;
-const typedEl = document.getElementById('typed-text');
-
-function typeText() {
-  const current = phrases[phraseIndex];
-  if (isDeleting) {
-    typedEl.textContent = current.substring(0, charIndex - 1);
-    charIndex--;
-  } else {
-    typedEl.textContent = current.substring(0, charIndex + 1);
-    charIndex++;
-  }
-  let delay = isDeleting ? 60 : 100;
-  if (!isDeleting && charIndex === current.length) { delay = 2200; isDeleting = true; }
-  else if (isDeleting && charIndex === 0) { isDeleting = false; phraseIndex = (phraseIndex + 1) % phrases.length; delay = 400; }
-  setTimeout(typeText, delay);
-}
-typeText();
-
-// ===== SCROLL REVEAL =====
-function revealOnScroll() {
-  const revealEls = document.querySelectorAll('.section-header, .timeline-card, .project-card, .skill-category, .education-card, .cert-item, .contact-card, .stat-card, .about-text > *, .about-education > *');
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach((entry, i) => {
-      if (entry.isIntersecting) {
-        setTimeout(() => {
-          entry.target.classList.add('reveal', 'visible');
-        }, i * 60);
-        observer.unobserve(entry.target);
-      }
+  // Close menu when a link is clicked
+  const navLinks = navMenu.querySelectorAll('a');
+  navLinks.forEach(link => {
+    link.addEventListener('click', () => {
+      menuToggle.classList.remove('open');
+      navMenu.classList.remove('open');
     });
-  }, { threshold: 0.08, rootMargin: '0px 0px -40px 0px' });
-
-  revealEls.forEach(el => {
-    el.classList.add('reveal');
-    observer.observe(el);
   });
 }
-revealOnScroll();
 
-// ===== CONTACT FORM =====
+// ==========================================
+// NAVBAR SCROLL METRICS & ACTIVE STATE
+// ==========================================
+const navbar = document.getElementById('navbar');
+const sections = document.querySelectorAll('section[id]');
+
+function handleScrollEffects() {
+  if (!navbar) return;
+
+  // Add scrolled style
+  if (window.scrollY > 40) {
+    navbar.classList.add('navbar-scrolled');
+  } else {
+    navbar.classList.remove('navbar-scrolled');
+  }
+
+  // Active navigation link tracking
+  const scrollY = window.pageYOffset + 120;
+
+  sections.forEach(section => {
+    const sectionHeight = section.offsetHeight;
+    const sectionTop = section.offsetTop;
+    const sectionId = section.getAttribute('id');
+    const navLink = document.getElementById('nav-' + sectionId);
+
+    if (navLink) {
+      if (scrollY > sectionTop && scrollY <= sectionTop + sectionHeight) {
+        // Remove active class from all links
+        document.querySelectorAll('.nav-menu a').forEach(el => el.classList.remove('active'));
+        navLink.classList.add('active');
+      }
+    }
+  });
+}
+
+window.addEventListener('scroll', handleScrollEffects);
+// Initial trigger on load
+handleScrollEffects();
+
+// ==========================================
+// TERMINAL TYPEWRITER SIMULATION
+// ==========================================
+const typewriterText = document.getElementById('typewriter-text');
+const consolePhrases = [
+  '"Active & open to full-time roles"',
+  '"Building Speech AI & LLM solutions"',
+  '"Transforming research into enterprise systems"',
+  '"Based in Pune, India"'
+];
+
+let phraseIdx = 0;
+let charIdx = 0;
+let isRemoving = false;
+let typeDelay = 100;
+
+function typeConsole() {
+  if (!typewriterText) return;
+
+  const currentPhrase = consolePhrases[phraseIdx];
+
+  if (isRemoving) {
+    typewriterText.textContent = currentPhrase.substring(0, charIdx - 1);
+    charIdx--;
+    typeDelay = 40;
+  } else {
+    typewriterText.textContent = currentPhrase.substring(0, charIdx + 1);
+    charIdx++;
+    typeDelay = 80;
+  }
+
+  // State checking
+  if (!isRemoving && charIdx === currentPhrase.length) {
+    typeDelay = 2000; // Pause at end of phrase
+    isRemoving = true;
+  } else if (isRemoving && charIdx === 0) {
+    isRemoving = false;
+    phraseIdx = (phraseIdx + 1) % consolePhrases.length;
+    typeDelay = 400; // Brief pause before typing next
+  }
+
+  setTimeout(typeConsole, typeDelay);
+}
+
+// Start Typewriter
+setTimeout(typeConsole, 1000);
+
+// ==========================================
+// SCROLL REVEAL OBSERVER
+// ==========================================
+const revealElements = document.querySelectorAll(
+  '.section-header, .bento-card, .timeline-item, .project-card, .skill-card, .contact-detail-card, .contact-form-wrap'
+);
+
+const revealObserver = new IntersectionObserver((entries) => {
+  entries.forEach((entry, idx) => {
+    if (entry.isIntersecting) {
+      // Small staggered latency
+      setTimeout(() => {
+        entry.target.classList.add('visible');
+      }, idx * 40);
+      revealObserver.unobserve(entry.target);
+    }
+  });
+}, {
+  threshold: 0.1,
+  rootMargin: '0px 0px -50px 0px'
+});
+
+revealElements.forEach(el => {
+  el.classList.add('reveal');
+  revealObserver.observe(el);
+});
+
+// ==========================================
+// INTERACTIVE PROJECT CARD GLOW
+// ==========================================
+const projectCards = document.querySelectorAll('.project-card');
+
+projectCards.forEach(card => {
+  const glow = card.querySelector('.project-glow');
+  
+  card.addEventListener('mousemove', (e) => {
+    if (!glow) return;
+    const rect = card.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    
+    // Set custom variables for hover light targeting
+    glow.style.left = (x - 150) + 'px';
+    glow.style.top = (y - 150) + 'px';
+  });
+});
+
+// ==========================================
+// FORM HANDLING
+// ==========================================
 function handleFormSubmit(event) {
   event.preventDefault();
-  const btn = document.getElementById('contact-submit-btn');
-  const name = document.getElementById('contact-name').value;
-  const email = document.getElementById('contact-email-input').value;
-  const subject = document.getElementById('contact-subject').value;
-  const message = document.getElementById('contact-message').value;
+  
+  const submitBtn = document.getElementById('contact-submit-btn');
+  const nameVal = document.getElementById('contact-name').value;
+  const emailVal = document.getElementById('contact-email-input').value;
+  const subjectVal = document.getElementById('contact-subject').value;
+  const messageVal = document.getElementById('contact-message').value;
 
-  btn.innerHTML = '<span>Sending...</span>';
-  btn.disabled = true;
+  if (!submitBtn) return;
 
-  // Create mailto link as fallback
-  const mailtoLink = `mailto:tusharlahekar05@gmail.com?subject=${encodeURIComponent(subject || 'Portfolio Contact')}&body=${encodeURIComponent(`Name: ${name}\nEmail: ${email}\n\n${message}`)}`;
+  const originalContent = submitBtn.innerHTML;
+  submitBtn.disabled = true;
+  submitBtn.innerHTML = 'Sending...';
+
+  // Construct standard mailto link
+  const emailSubject = encodeURIComponent(subjectVal || 'Portfolio Message');
+  const emailBody = encodeURIComponent(`Name: ${nameVal}\nEmail: ${emailVal}\n\nMessage:\n${messageVal}`);
+  const mailtoLink = `mailto:tusharlahekar05@gmail.com?subject=${emailSubject}&body=${emailBody}`;
 
   setTimeout(() => {
+    // Open mail client
     window.location.href = mailtoLink;
-    btn.innerHTML = '<span>Message Sent!</span><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>';
-    btn.style.background = 'linear-gradient(135deg, #22c55e, #16a34a)';
+    
+    submitBtn.innerHTML = 'Success!';
+    submitBtn.style.backgroundColor = 'var(--primary)';
+    submitBtn.style.borderColor = 'var(--primary)';
+    submitBtn.style.color = '#000';
+    
+    // Reset form
     event.target.reset();
+
     setTimeout(() => {
-      btn.innerHTML = '<span>Send Message</span><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>';
-      btn.style.background = '';
-      btn.disabled = false;
+      submitBtn.innerHTML = originalContent;
+      submitBtn.disabled = false;
+      submitBtn.style.backgroundColor = '';
+      submitBtn.style.borderColor = '';
+      submitBtn.style.color = '';
     }, 3000);
-  }, 800);
+  }, 600);
 }
 
-// ===== SMOOTH SCROLL =====
-document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-  anchor.addEventListener('click', function(e) {
-    const target = document.querySelector(this.getAttribute('href'));
-    if (target) { e.preventDefault(); target.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
-  });
-});
-
-// ===== PROJECT CARD TILT =====
-document.querySelectorAll('.project-card').forEach(card => {
-  card.addEventListener('mousemove', (e) => {
-    const rect = card.getBoundingClientRect();
-    const x = e.clientX - rect.left, y = e.clientY - rect.top;
-    const cx = rect.width / 2, cy = rect.height / 2;
-    const rotX = ((y - cy) / cy) * -6, rotY = ((x - cx) / cx) * 6;
-    card.style.transform = `perspective(1000px) rotateX(${rotX}deg) rotateY(${rotY}deg) translateZ(10px)`;
-  });
-  card.addEventListener('mouseleave', () => {
-    card.style.transform = '';
-  });
-});
-
-// ===== SKILL TAG HOVER EFFECT =====
-document.querySelectorAll('.skill-tag').forEach(tag => {
-  tag.addEventListener('mouseenter', function() {
-    this.style.transform = 'scale(1.08) translateY(-2px)';
-  });
-  tag.addEventListener('mouseleave', function() {
-    this.style.transform = '';
-  });
-});
-
-// ===== LOGO CLICK =====
-document.querySelector('.nav-logo').addEventListener('click', () => {
-  window.scrollTo({ top: 0, behavior: 'smooth' });
-});
-
-console.log('%c👋 Hey there! Thanks for checking out Tushar\'s portfolio!', 'font-size: 16px; color: #8b5cf6; font-weight: bold;');
-console.log('%cBuilt with pure HTML, CSS & JavaScript ✨', 'font-size: 13px; color: #22d3ee;');
+// Log professional footer note in console
+console.log(
+  '%c🚀 Tushar Lahekar - AI Engineer Portfolio initialized successfully.',
+  'color: #10b981; font-weight: bold; font-size: 13px;'
+);
